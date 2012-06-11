@@ -1,0 +1,2 @@
+# Image Class
+import image
