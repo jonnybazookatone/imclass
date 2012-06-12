@@ -39,7 +39,7 @@ import glob
 
 import python.lib.sextractor as sextractor
 
-HOTPANTSPATH="/home/sw/bin"
+#HOTPANTSPATH="/home/sw/bin"
 
 __author__ = "Jonny Elliott"
 __copyright__ = "Copyright 2012"
@@ -687,7 +687,7 @@ class imFits(object):
 		#      : N = 0 .. ngauss - 1 
 
 		# Call hotpants
-		cmd = ["%s/hotpants" % HOTPANTSPATH, "-v", "0", "-inim", self._Name, "-tmplim", templateFits._Name, "-outim", outFits._Name, "-oni", outFits._Noise, "-tu", "%s" % _tu, "-tuk", "%s" %  _tuk, "-tl", "%s" % _tl, "-tg", "%s" % _tg, "-tr", "%s" % _tr, "-iu", "%s" % _iu, "-iuk", "%s" % _iuk, "-il", "%s" % _il, "-ig", "%s" % _ig, "-ir", "%s" % _ir, "-nsx", "%s" % _nsx, "-nsy", "%s" % _nsy, "-n", "%s" % _norm]
+		cmd = ["hotpants", "-v", "0", "-inim", self._Name, "-tmplim", templateFits._Name, "-outim", outFits._Name, "-oni", outFits._Noise, "-tu", "%s" % _tu, "-tuk", "%s" %  _tuk, "-tl", "%s" % _tl, "-tg", "%s" % _tg, "-tr", "%s" % _tr, "-iu", "%s" % _iu, "-iuk", "%s" % _iuk, "-il", "%s" % _il, "-ig", "%s" % _ig, "-ir", "%s" % _ir, "-nsx", "%s" % _nsx, "-nsy", "%s" % _nsy, "-n", "%s" % _norm]
 
 		cmd.append("-ng")
 
