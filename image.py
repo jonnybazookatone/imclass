@@ -58,10 +58,29 @@ class imObject(object):
 
 
 	def setAps(self, fap, fdan, fan, scale=1.0):
+		#try:
+		#self._parentimage.loadHeader()
+			#try:
+				#pixscale = abs(self._parentimage.getHeader("CD1_1")*3600.)
+			#except TypeError:
+				#pixscale = abs(self._parentimage.getHeader("CDELT1")*3600.)
+		#except:
+			#print "You didn't give a parent image"
+
+		#print "Pixel scale: %f" % pixscale
+		
 		self._fap = fap * scale
 		self._fdan = fdan * scale
 		self._fan = fan * scale
-	def getAps(self):
+	def getAps(self, write=False):
+	  
+		if write:
+			print "%s_apphot_%s_wcs.reg" % (self._parentimage, self._Name)
+			apout = open("%s_apphot_%s_wcs.reg" % (self._parentimage, self._Name), "w")
+			apout.write("fk5; circle(%f, %f, %f)" % (self._ra, self._dec, self._fap))
+			apout.write("fk5; circle(%f, %f, %f)" % (self._ra, self._dec, self._fdan))
+			apout.write("fk5; circle(%f, %f, %f)" % (self._ra, self._dec, self._fan))
+			apout.close()
 		return self._fap, self._fdan, self._fan
 
 	def setBox(self, Box):
@@ -425,6 +444,7 @@ class imFits(object):
 	def getMidMJD(self, seconds=False, zero=False):
 		self.loadHeader()
 		MJD = float(self.getHeader("MJD-MID"))
+		MJDErr = float(self.getHeader("EXPTIME"))
 
 		if seconds and zero:
 			MJD = (MJD - zero)*60*60*24
@@ -433,8 +453,8 @@ class imFits(object):
 		elif zero:
 			MJD = MJD - zero
 
-		return MJD
-
+		return MJD, MJDErr
+	
 	def squareMyself(self):
 
 		# Square the image
@@ -966,11 +986,13 @@ class imFits(object):
 		else:
 			ifilter = self.getHeader("SUBSET")
 
+		print "FILTER: %s" % ifilter
                 print "RON: %s" % self.getHeader("RON")
                 print "GAIN: %s" % self.getHeader("GAIN")
                 print "EXPTIME: %s" % self.getHeader("EXPTIME")
                 print "AIRMASS: %s" % self.getHeader("AIRMASS")
                 print "DATE: %s" % self.getHeader("DATE-OBS")
+                print "ZP: %s" % self._ZPDICT[self.getHeader("FILTER")]
 
 		iraf.phot(image=self._Name,
 				coords=coordfilename, 
@@ -985,7 +1007,7 @@ class imFits(object):
 				wcsout="logical",
 				datamin=-100,
 				datamax="INDEF",
-				zmag=22.703,	# to do: make function to calculate
+				zmag=self._ZPDICT[self.getHeader("FILTER")],	# to do: make function to calculate
 				annulus=photObject._fan,
 				dannulus=photObject._fdan,
 				calgorithm="none",
@@ -1020,7 +1042,7 @@ class imFits(object):
 		photObject._flux = propList[4][1]
 		photObject._appMag = propList[4][4]
 		photObject._appMagErr = propList[4][5]
-		photObject._midMJD = self.getMidMJD()#seconds=True,zero=55822.89371528)
+		photObject._midMJD, photObject._midMJDErr = self.getMidMJD()#seconds=True,zero=55822.89371528)
 
 	def getMyMedianFWHM(self):
 
