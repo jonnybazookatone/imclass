@@ -1,8 +1,33 @@
-# Author: J Elliott
-# Date: 07.11.2011
-#-------------------
+"""
+ ================================
+| FITS Image Python Object Class |
+|         v0.1                   |
+ ================================
 
-# imports
+The two major classes that exist are:
+
+1) Image class
+2) Object class
+
+1. Image Class
+---------------
+
+The image class is an image object, that represents a fits image. The object has methods to obtain properties such as average FWHM, sky background, and so on utilsing IRAF or SEXtractor taks.
+To call the class, use:
+
+image = imFits()
+
+
+2. Object Class
+---------------
+
+The object class is an object that represents something inside an image, e.g., star, galaxy, GRB, etc. Each image object can then be associated to a parent image, which is of the image class.
+Both entities are separate, but can be combined, e.g., to obtain the photometry of an image object within an image. To call the class use:
+
+star = imObject()
+
+"""
+
 from pyraf import iraf
 import matplotlib.pyplot as plt
 import sys, os, signal
@@ -16,12 +41,14 @@ import python.lib.sextractor as sextractor
 
 HOTPANTSPATH="/home/sw/bin"
 
-## Usagephot
-
-Usage = """FITS image class, to be used with pypants.py and pyremap.py
-for example:
-	from image.py import imFits
-"""
+__author__ = "Jonny Elliott"
+__copyright__ = "Copyright 2012"
+__credits__ =  ""
+__license__ = "GPL"
+__version__ = "0.1"
+__maintainer__ = "Jonny Elliott"
+__email__ = "jonnyelliott@mpe.mpg.de"
+__status__ = "Prototype"
 
 # Image Class
 # To be used with pypants.py and pyremap.py
@@ -1159,4 +1186,11 @@ class imFits(object):
 		
 if __name__ == "__main__":
   
-	print Usage
+	print __doc__
+	print "Author: %s" % __author__
+	print "Copyright: %s" % __copyright__
+	print "License: %s" % __license__
+	print "Version: %s" % __version__ 
+	print "Maintainer: %s" % __maintainer__ 
+	print "E-mail: %s" % __email__
+	print "Status: %s" % __status__
