@@ -1050,6 +1050,13 @@ class imFits(object):
                 print "DATE: %s" % self.getHeader("DATE-OBS")
                 print "ZP: %s" % self._ZPDICT[self.getHeader("FILTER")]
 
+		try:
+			EPADU = (2/3)*self.getHeader("NIMGS")*self.getHeader("GAIN")
+			print "Keyword used: NIMGS"
+		except:
+			EPADU = (2/3)*self.getHeader("NCOMBINE")*self.getHeader("GAIN")
+			print "Keyword used: NCOMBINE"
+
 		iraf.phot(image=self._Name,
 				coords=coordfilename, 
 				output=output,
@@ -1073,7 +1080,7 @@ class imFits(object):
 				mode="ql",
 				Stdout=1,
 		 		readnoi=self.getHeader("RON"),
-				epadu=(2/3)*self.getHeader("NIMGS")*self.getHeader("GAIN"),
+				epadu=EPADU,
 				itime=self.getHeader("EXPTIME"),
 				xairmass=self.getHeader("AIRMASS"),
 				ifilter=ifilter,
