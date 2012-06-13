@@ -1113,6 +1113,7 @@ class imFits(object):
 		sex = sextractor.SExtractor()
 
 	        # Modify the SExtractor configuration
+		print "SEXTRACTOR, CWD: %s" % os.getcwd()
 		try:
 			sexconfig = open("%s/fwhm.sex" % os.getcwd(), "r")
 			sexline = sexconfig.readlines()
