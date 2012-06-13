@@ -154,6 +154,7 @@ class imObject(object):
 		print "Pixel co-ordinates: %s %s" % (self._pixelx, self._pixely)
 		print "Magnitude: %s" % (self._mag)
 		print "Apperture Magnitude: %s +/- %s" % (self._appMag, self._appMagErr)
+		print "Apperture Flux: %s +/- %s" % (self._skyFlux, self._flux)
 		print "Time: %s" % (self._midMJD)
 		print "fap: %s" % (self._fap)
 		print "fdan: %s" % (self._fdan)
@@ -379,39 +380,7 @@ class imObject(object):
                                 print sys.exc_info()[0]
 
 
-        def calculateError(self):
 
-		# Airmass coefficients
-		airmassCoefficients = {"g": 0.16, \
-					"r": 0.09,\
-					"i": 0.04,\
-					"z": 0.04,\
-					"J": 0.12,\
-					"H": 0.06,\
-					"K": 0.07\
-					}
-
-                # We assume it is running on a squared image
-                print "######################################"
-                print "INFO: YOU MUST FIRST SQUARE YOUR IMAGE"
-                print "######################################"
-
-                # Check the fluxes exist
-		if self._skyFlux == "" or self._flux == "" or self._Band == "":
-			print "Please calculate fluxes or specify the band"
-			return 0
-
-		# Calculation
-                sqrd_error = self._skyflux + self._flux
-		fluxerror = scipy.sqrt(sqrd_error)
-
-		AIRMASS = getHeader("AIRMASS")
-		EXPTIME = getHeader("EXPTIME")
-		COEFF = airmassCoefficients[self._Band]
-
-		fluxmoderror = zeropoint[self._ZP] + (1-AIRMASS)*COEFF + 2.5*scipy.log10(EXPTIME) - 2.5*scipy.log10(fluxerror)
-
-		return fluxmoderror
 
 
 class imFits(object):
@@ -498,6 +467,66 @@ class imFits(object):
 			)
 
 		return newObjectName 
+
+        def calculateError(self, objectOfInterest, noiseObject):
+
+		# Airmass coefficients
+		airmassCoefficients = {"g": 0.16, \
+					"r": 0.09,\
+					"i": 0.04,\
+					"z": 0.04,\
+					"J": 0.12,\
+					"H": 0.06,\
+					"K": 0.07\
+					}
+
+                # We assume it is running on a squared image
+                print "######################################"
+                print "INFO: YOU MUST FIRST SQUARE YOUR IMAGE"
+                print "######################################"
+
+                # Check the fluxes exist
+		if objectOfInterest._skyFlux == "" or objectOfInterest._flux == "" or self._Band == "":
+			print "Please calculate fluxes or specify the band"
+			return 0
+
+		# Calculation
+		# TODO: Modify this in a nicer way, currently it is a hack
+		# 
+		# You need to pass the:
+		#		- object of interest after you have calculated its magnitude
+		# 		- noise object after calculating the magnitude from the squared noise image
+		#
+		#
+		# The math:
+		#
+		# m (signal) = (1-AIRMASS)*COEFF + 2.5*log10(EXPTIME) - (2.5*log10(signal)) + ZEROPOINT
+		# m (signal + noise) = (1-AIRMASS)*COEFF + 2.5*log10(EXPTIME) - (2.5*log10(signal+noise)) + ZEROPOINT
+		#
+		# dm = m(signal + noise) - m(signal) = -2.5*log10(signal+noise) + 2.5*log10(signal + noise)
+		#    = -2.5 * log10 * ( Signal + Noise )
+		#                     (  --------------)
+		#                     (     Signal      )
+		#
+		
+		print "Flux(interest):\t %f" % (objectOfInterest._flux)
+		print "Flux(noise):\t %f" % (noiseObject._flux)
+		print "s+n /s:\t %f" % ((noiseObject._flux+objectOfInterest._flux)/objectOfInterest._flux)
+		
+		sqrd_error = (objectOfInterest._flux + noiseObject._flux) / (objectOfInterest._flux)
+		fluxerror = scipy.sqrt(sqrd_error)
+
+		#self.loadHeader()
+		#AIRMASS = self.getHeader("AIRMASS")
+		#EXPTIME = self.getHeader("EXPTIME")
+		#FILTER = self.getHeader("FILTER")
+		#COEFF = airmassCoefficients[FILTER]
+		#ZEROPOINT = self._ZPDICT[FILTER]
+
+		#fluxmoderror = (1-AIRMASS)*COEFF + 2.5*scipy.log10(EXPTIME) - (2.5*scipy.log10(fluxerror)) # + ZEROPOINT
+		deltamag = -2.5 * scipy.log10(fluxerror)
+
+		return abs(deltamag)
 
 	def returnInfo(self, verbose=False):
 		if verbose:
@@ -1065,10 +1094,10 @@ class imFits(object):
 				Property = [i for i in Properties.replace("\n","").replace("\\","").split(" ") if i != ""]
 				propList.append(Property)
 
-		photObject._skyFlux = propList[3][0]
-		photObject._flux = propList[4][1]
-		photObject._appMag = propList[4][4]
-		photObject._appMagErr = propList[4][5]
+		photObject._skyFlux = float(propList[3][0])
+		photObject._flux = float(propList[4][1])
+		photObject._appMag = float(propList[4][4])
+		photObject._appMagErr = float(propList[4][5])
 		photObject._midMJD, photObject._midMJDErr = self.getMidMJD()#seconds=True,zero=55822.89371528)
 
 	def getMyMedianFWHM(self):
