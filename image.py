@@ -1118,7 +1118,7 @@ class imFits(object):
 		try:
 			photObject._appMagErr = float(propList[4][5])
 		except:
-                        photObject._appMagErr = float(propList[4][5])
+                        photObject._appMagErr = (propList[4][5])
 
 
 		photObject._midMJD, photObject._midMJDErr = self.getMidMJD()#seconds=True,zero=55822.89371528)
