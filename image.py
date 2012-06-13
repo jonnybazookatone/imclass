@@ -1113,8 +1113,21 @@ class imFits(object):
 		sex = sextractor.SExtractor()
 
 	        # Modify the SExtractor configuration
-        	sex.config['DETECT_MINAREA'] = 8
-	        sex.config['DETECT_THRESH'] = 8
+		try:
+			sexconfig = open("%s/fwhm.sex" % os.getcwd(), "r")
+			sexline = sexconfig.readlines()
+			sexconfig.close()
+			for line in sexline:
+				templ = line.replace("\n","").split(" ")
+				sex.config[templ[0]] = templ[1]
+				print "%s: %s" % (templ[0], templ[1])
+			
+			print "Using user defined parameter"
+			
+		except:
+			print "Using default sextractor parameters"
+	        	sex.config['DETECT_MINAREA'] = 8
+		        sex.config['DETECT_THRESH'] = 8
 		#MAXAREA is not known in version on faramir
 	        #sex.config['DETECT_MAXAREA'] = 100
 
