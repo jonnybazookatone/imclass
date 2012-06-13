@@ -1101,10 +1101,26 @@ class imFits(object):
 				Property = [i for i in Properties.replace("\n","").replace("\\","").split(" ") if i != ""]
 				propList.append(Property)
 
-		photObject._skyFlux = float(propList[3][0])
-		photObject._flux = float(propList[4][1])
-		photObject._appMag = float(propList[4][4])
-		photObject._appMagErr = float(propList[4][5])
+		try:
+			photObject._skyFlux = float(propList[3][0])
+		except:
+                        photObject._skyFlux = (propList[3][0])
+		try:			
+			photObject._flux = float(propList[4][1])
+		except:
+                        photObject._flux = (propList[4][1])
+
+		try:
+			photObject._appMag = float(propList[4][4])
+		except:
+                        photObject._appMag = (propList[4][4])
+
+		try:
+			photObject._appMagErr = float(propList[4][5])
+		except:
+                        photObject._appMagErr = float(propList[4][5])
+
+
 		photObject._midMJD, photObject._midMJDErr = self.getMidMJD()#seconds=True,zero=55822.89371528)
 
 	def getMyMedianFWHM(self):
@@ -1120,7 +1136,7 @@ class imFits(object):
 			sexconfig.close()
 			for line in sexline:
 				templ = line.replace("\n","").split(" ")
-				sex.config[templ[0]] = templ[1]
+				sex.config[templ[0]] = float(templ[1])
 				print "%s: %s" % (templ[0], templ[1])
 			
 			print "Using user defined parameter"
