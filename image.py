@@ -1170,6 +1170,7 @@ class imFits(object):
 	        catalogoo.close()
 
 	        # Take the smallest 20% of the FWHM
+		FWHMList = FWHMList[FWHMList > 0]	# Seemingly old SEXtractor gives negative values
 	        FWHMList = numpy.sort(FWHMList)
 	        FWHMListLength = len(FWHMList)
 	        FWHMTwenty = int(0.2*FWHMListLength)
