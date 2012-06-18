@@ -398,6 +398,11 @@ class imFits(object):
 		self._ZPDICT = {
 				"g": 24.99, \
 				"r": 25.21, \
+				"i": 24.20, \
+				"z": 24.00, \
+				"J": 23.973, \
+				"H": 23.515, \
+				"K": 22.703, \
 				}
 
 	def printInfo(self):
