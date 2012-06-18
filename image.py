@@ -1055,6 +1055,12 @@ class imFits(object):
                 print "AIRMASS: %s" % self.getHeader("AIRMASS")
                 print "DATE: %s" % self.getHeader("DATE-OBS")
                 print "ZP: %s" % self._ZPDICT[self.getHeader("FILTER")]
+		try:
+			EPADU = (2/3)*self.getHeader("NIMGS")*self.getHeader("GAIN")
+			print "Keyword used: NIMGS"
+		except:
+			EPADU = (2/3)**self.getHeader("NCOMBINE")*self.getHeader("GAIN")
+			print "Keyword uparmsed: NCOMBINE"
 
 		iraf.phot(image=self._Name,
 				coords=coordfilename, 
@@ -1079,7 +1085,7 @@ class imFits(object):
 				mode="ql",
 				Stdout=1,
 		 		readnoi=self.getHeader("RON"),
-				epadu=(2/3)*self.getHeader("NIMGS")*self.getHeader("GAIN"),
+				epadu=EPADU,
 				itime=self.getHeader("EXPTIME"),
 				xairmass=self.getHeader("AIRMASS"),
 				ifilter=ifilter,
@@ -1100,10 +1106,25 @@ class imFits(object):
 				Property = [i for i in Properties.replace("\n","").replace("\\","").split(" ") if i != ""]
 				propList.append(Property)
 
-		photObject._skyFlux = float(propList[3][0])
-		photObject._flux = float(propList[4][1])
-		photObject._appMag = float(propList[4][4])
-		photObject._appMagErr = float(propList[4][5])
+		try:
+			photObject._skyFlux = float(propList[3][0])
+		except:
+                        photObject._skyFlux = (propList[3][0])
+		try:			
+			photObject._flux = float(propList[4][1])
+		except:
+                        photObject._flux = (propList[4][1])
+
+		try:
+			photObject._appMag = float(propList[4][4])
+		except:
+                        photObject._appMag = (propList[4][4])
+
+		try:
+			photObject._appMagErr = float(propList[4][5])
+		except:
+                        photObject._appMagErr = (propList[4][5])
+
 		photObject._midMJD, photObject._midMJDErr = self.getMidMJD()#seconds=True,zero=55822.89371528)
 
 	def getMyMedianFWHM(self):
@@ -1111,9 +1132,23 @@ class imFits(object):
 		# Create a SExtractor instance
 		sex = sextractor.SExtractor()
 
-	        # Modify the SExtractor configuration
-        	sex.config['DETECT_MINAREA'] = 8
-	        sex.config['DETECT_THRESH'] = 8
+		print "SEXTRACTOR, CWD: %s" % os.getcwd()
+		try:
+			sexconfig = open("%s/fwhm.sex" % os.getcwd(), "r")
+			sexline = sexconfig.readlines()
+			sexconfig.close()
+			for line in sexline:
+				templ = line.replace("\n","").split(" ")
+			sex.config[templ[0]] = float(templateFitsmpl[1])
+			print "%s: %s" % (templ[0], templ[1])
+		
+			print "Using user defined parameter"
+		
+		except:
+			print "Using default sextractorractor parameters"
+			sex.config['DETECT_MINAREA'] = 8
+			sex.config['DETECT_THRESH'] = 8
+
 		#MAXAREA is not known in version on faramir
 	        #sex.config['DETECT_MAXAREA'] = 100
 
@@ -1139,6 +1174,7 @@ class imFits(object):
 	        catalogoo.close()
 
 	        # Take the smallest 20% of the FWHM
+		FWHMList = FWHMList[FWHMList > 0]# Seemingly old SEXtractor gives negative valuess
 	        FWHMList = numpy.sort(FWHMList)
 	        FWHMListLength = len(FWHMList)
 	        FWHMTwenty = int(0.2*FWHMListLength)
