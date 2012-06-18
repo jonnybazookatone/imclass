@@ -842,9 +842,9 @@ class imFits(object):
 				fwhmpsf=self._MEDFWHM,
 				sharplo='0.0',
 				sharphi='1.0',
-				roundlo='-1.0',
-				roundhi='1.0',
-				thresho='4.0',
+				roundlo='-0.9',
+				roundhi='0.9',
+				thresho='6.0',
 				wcsout="logical",
 				Stdout=1,
 				mode='h'
@@ -877,7 +877,7 @@ class imFits(object):
 				newCoordObject._mag = float(coitem[2])
 				#newCoordObject.printInfo()
 
-				coordregfile.write("image; circle(%f,%f,4) # color = white\n" % (newCoordObject._pixelx, newCoordObject._pixely))
+				coordregfile.write("image; circle(%f,%f,4) # color = red\n" % (newCoordObject._pixelx, newCoordObject._pixely))
 
 				coobject.append(newCoordObject)
 
@@ -897,7 +897,8 @@ class imFits(object):
 
 			# Not itself
 			dist = CoordObject.distanceApart(coord)
-			if CoordObject._id != coord._id and dist > rcirc and dist < rcirc+100:
+			if CoordObject._id != coord._id and dist > rcirc: #and dist < rcirc+100:
+				print "Distance: %f, %f" % (dist,rcirc)
 				#print "Comparing: %s and %s" % (CoordObject._id, coord._id)
 				#print "Distance: %s" % dist
 				NearestNeighbours.append([coord,dist])
@@ -1050,13 +1051,6 @@ class imFits(object):
                 print "DATE: %s" % self.getHeader("DATE-OBS")
                 print "ZP: %s" % self._ZPDICT[self.getHeader("FILTER")]
 
-		try:
-			EPADU = (2/3)*self.getHeader("NIMGS")*self.getHeader("GAIN")
-			print "Keyword used: NIMGS"
-		except:
-			EPADU = (2/3)*self.getHeader("NCOMBINE")*self.getHeader("GAIN")
-			print "Keyword used: NCOMBINE"
-
 		iraf.phot(image=self._Name,
 				coords=coordfilename, 
 				output=output,
@@ -1080,7 +1074,7 @@ class imFits(object):
 				mode="ql",
 				Stdout=1,
 		 		readnoi=self.getHeader("RON"),
-				epadu=EPADU,
+				epadu=(2/3)*self.getHeader("NIMGS")*self.getHeader("GAIN"),
 				itime=self.getHeader("EXPTIME"),
 				xairmass=self.getHeader("AIRMASS"),
 				ifilter=ifilter,
@@ -1101,26 +1095,10 @@ class imFits(object):
 				Property = [i for i in Properties.replace("\n","").replace("\\","").split(" ") if i != ""]
 				propList.append(Property)
 
-		try:
-			photObject._skyFlux = float(propList[3][0])
-		except:
-                        photObject._skyFlux = (propList[3][0])
-		try:			
-			photObject._flux = float(propList[4][1])
-		except:
-                        photObject._flux = (propList[4][1])
-
-		try:
-			photObject._appMag = float(propList[4][4])
-		except:
-                        photObject._appMag = (propList[4][4])
-
-		try:
-			photObject._appMagErr = float(propList[4][5])
-		except:
-                        photObject._appMagErr = (propList[4][5])
-
-
+		photObject._skyFlux = float(propList[3][0])
+		photObject._flux = float(propList[4][1])
+		photObject._appMag = float(propList[4][4])
+		photObject._appMagErr = float(propList[4][5])
 		photObject._midMJD, photObject._midMJDErr = self.getMidMJD()#seconds=True,zero=55822.89371528)
 
 	def getMyMedianFWHM(self):
@@ -1129,22 +1107,8 @@ class imFits(object):
 		sex = sextractor.SExtractor()
 
 	        # Modify the SExtractor configuration
-		print "SEXTRACTOR, CWD: %s" % os.getcwd()
-		try:
-			sexconfig = open("%s/fwhm.sex" % os.getcwd(), "r")
-			sexline = sexconfig.readlines()
-			sexconfig.close()
-			for line in sexline:
-				templ = line.replace("\n","").split(" ")
-				sex.config[templ[0]] = float(templ[1])
-				print "%s: %s" % (templ[0], templ[1])
-			
-			print "Using user defined parameter"
-			
-		except:
-			print "Using default sextractor parameters"
-	        	sex.config['DETECT_MINAREA'] = 8
-		        sex.config['DETECT_THRESH'] = 8
+        	sex.config['DETECT_MINAREA'] = 8
+	        sex.config['DETECT_THRESH'] = 8
 		#MAXAREA is not known in version on faramir
 	        #sex.config['DETECT_MAXAREA'] = 100
 
@@ -1170,7 +1134,6 @@ class imFits(object):
 	        catalogoo.close()
 
 	        # Take the smallest 20% of the FWHM
-		FWHMList = FWHMList[FWHMList > 0]	# Seemingly old SEXtractor gives negative values
 	        FWHMList = numpy.sort(FWHMList)
 	        FWHMListLength = len(FWHMList)
 	        FWHMTwenty = int(0.2*FWHMListLength)
