@@ -660,20 +660,24 @@ class imFits(object):
 
 		# Band dictionary for gain and readout noise
 		self.loadHeader()
+		templateFits.loadHeader()
+
 		readgain_dict = {\
-					"GAIN": self.getHeader("GAIN"), \
-					"RON": self.getHeader("RON"),\
+					"IGAIN": self.getHeader("GAIN"), \
+					"IRON": self.getHeader("RON"),\
+					"TGAIN": templateFits.getHeader("GAIN"), \
+					"TRON": templateFits.getHeader("RON"), \
 				}
 
 		# Will fill the correct details for each band
 		if _tg == "None":
-			_tg = readgain_dict["GAIN"]
+			_tg = readgain_dict["TGAIN"]
 		if _tr == "None":
-			_tr = readgain_dict["RON"]
+			_tr = readgain_dict["TRON"]
 		if _ig == "None":
-			_ig = readgain_dict["GAIN"]
+			_ig = readgain_dict["IGAIN"]
 		if _ir == "None":
-			_ir = readgain_dict["RON"]
+			_ir = readgain_dict["IRON"]
 
 		# Default values from Wiki page if no input values
 		if _tu == "None":
